@@ -28,7 +28,7 @@ jobs:
       - name: Ping server MTA (keepalive + player count)
         env:
           MTA_IP: ${{ vars.MTA_IP || '51.68.107.75' }}
-          MTA_PORT: ${{ vars.MTA_PORT || '22003' }}
+          MTA_PORT: ${{ vars.MTA_PORT || '12599' }}
         run: |
           if [ -f keepalive.py ]; then SCRIPT=keepalive.py; else SCRIPT=mta-panel/keepalive.py; fi
           python3 "$SCRIPT" "$MTA_IP" "$MTA_PORT" --once
@@ -38,7 +38,7 @@ jobs:
         env:
           WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           MTA_IP: ${{ vars.MTA_IP || '51.68.107.75' }}
-          MTA_PORT: ${{ vars.MTA_PORT || '22003' }}
+          MTA_PORT: ${{ vars.MTA_PORT || '12599' }}
         run: |
           if [ -n "$WEBHOOK" ]; then
             curl -s -H "Content-Type: application/json" \
@@ -51,7 +51,7 @@ jobs:
         env:
           WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           MTA_IP: ${{ vars.MTA_IP || '51.68.107.75' }}
-          MTA_PORT: ${{ vars.MTA_PORT || '22003' }}
+          MTA_PORT: ${{ vars.MTA_PORT || '12599' }}
         run: |
           if [ -n "$WEBHOOK" ]; then
             # Obtener output del paso anterior
