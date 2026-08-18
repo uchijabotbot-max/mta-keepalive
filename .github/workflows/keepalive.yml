@@ -1,0 +1,64 @@
+name: MTA 24/7 — Keepalive + Player Watchdog
+
+# Corre cada 2 minutos, 24/7, GRATIS (minutos ilimitados en repos publicos).
+# Hace DOS cosas:
+#   1) Ping ASE (anti-inactividad de red)
+#   2) Vigila player count (avisa si 0 jugadores)
+#
+# Configuracion:
+#   Settings → Secrets and variables → Actions
+#   Secrets:  DISCORD_WEBhook (URL del webhook de Discord)
+#   Variables: MTA_IP, MTA_PORT
+
+on:
+  schedule:
+    - cron: '* * * * *'  # cada minuto (lo mas agresivo posible)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Ping server MTA (keepalive + player count)
+        env:
+          MTA_IP: ${{ vars.MTA_IP || '51.68.107.75' }}
+          MTA_PORT: ${{ vars.MTA_PORT || '22003' }}
+        run: |
+          if [ -f keepalive.py ]; then SCRIPT=keepalive.py; else SCRIPT=mta-panel/keepalive.py; fi
+          python3 "$SCRIPT" "$MTA_IP" "$MTA_PORT" --once
+
+      - name: Aviso Discord — server no responde
+        if: failure()
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          MTA_IP: ${{ vars.MTA_IP || '51.68.107.75' }}
+          MTA_PORT: ${{ vars.MTA_PORT || '22003' }}
+        run: |
+          if [ -n "$WEBHOOK" ]; then
+            curl -s -H "Content-Type: application/json" \
+              -d "{\"content\":\":red_circle: **ALERTA** Server \`${MTA_IP}:${MTA_PORT}\` NO RESPONDE (ping fallido). Verificando...\"}" \
+              "$WEBHOOK" >/dev/null || true
+          fi
+
+      - name: Aviso Discord — 0 jugadores
+        if: success()
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          MTA_IP: ${{ vars.MTA_IP || '51.68.107.75' }}
+          MTA_PORT: ${{ vars.MTA_PORT || '22003' }}
+        run: |
+          if [ -n "$WEBHOOK" ]; then
+            # Obtener output del paso anterior
+            OUTPUT=$(python3 keepalive.py $MTA_IP $MTA_PORT --once 2>&1 || true)
+            if echo "$OUTPUT" | grep -q "Players: 0/"; then
+              curl -s -H "Content-Type: application/json" \
+                -d "{\"content\":\":warning: **AVISO** Server \`${MTA_IP}:${MTA_PORT}\` con **0 jugadores**. Puede apagar por inactividad.\"}" \
+                "$WEBHOOK" >/dev/null || true
+            fi
+          fi
