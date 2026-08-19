@@ -1,0 +1,21 @@
+# Secrets
+token.txt
+mta-panel/config.json
+
+# Temp / state
+mta-panel/state.json
+mta-panel/mta_server.log
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
