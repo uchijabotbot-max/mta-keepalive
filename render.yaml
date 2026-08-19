@@ -1,0 +1,11 @@
+services:
+  - type: worker
+    name: mta-keepalive
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    envVars:
+      - key: MTA_IP
+        value: "51.68.107.75"
+      - key: MTA_PORT
+        value: "12599"

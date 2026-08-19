@@ -1,0 +1,2 @@
+# keepalive.py no tiene dependencias externas — usa solo la libreria estandar.
+# Este archivo existe para que Render.com no truene al hacer pip install.
